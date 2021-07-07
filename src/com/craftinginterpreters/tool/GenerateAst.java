@@ -69,29 +69,29 @@ public class GenerateAst {
                 baseName + " {");
 
         // Constructor.
-        writer.println("      " + className + "(" + fieldList + ") {");
+        writer.println("        " + className + "(" + fieldList + ") {");
 
         // Store parameters in fields.
         String[] fields = fieldList.split(", ");
         for (String field : fields) {
             String name = field.split(" ")[1];
-            writer.println("        this." + name + " = " + name + ";");
+            writer.println("            this." + name + " = " + name + ";");
         }
 
-        writer.println("    }");
+        writer.println("        }");
 
         // Visitor pattern.
         writer.println();
-        writer.println("      @Override");
-        writer.println("      <R> R accept(Visitor<R> visitor) {");
-        writer.println("        return visitor.visit" +
+        writer.println("        @Override");
+        writer.println("        <R> R accept(Visitor<R> visitor) {");
+        writer.println("            return visitor.visit" +
                 className + baseName + "(this);");
-        writer.println("      }");
+        writer.println("        }");
 
         // Fields.
         writer.println();
         for (String field : fields) {
-            writer.println("      final " + field + ";");
+            writer.println("        final " + field + ";");
         }
 
         writer.println("    }");
