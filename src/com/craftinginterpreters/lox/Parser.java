@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -14,9 +15,14 @@ class Parser {
         this.tokens = tokens;
     }
 
-    Expr parse() {
+    List<Stmt> parse(Void unused) {
         try {
-            return expression((Void) null);
+            List<Stmt> statements = new ArrayList<>();
+            while (!isAtEnd()) {
+                statements.add(statement(unused));
+            }
+
+            return statements;
         } catch (ParseError error) {
             return null;
         }
@@ -24,6 +30,24 @@ class Parser {
 
     private Expr expression(Void unused) {
         return equality(unused);
+    }
+
+    private Stmt statement(Void unused) {
+        if (match(PRINT)) return printStatement(unused);
+
+        return expressionStatement(unused);
+    }
+
+    private Stmt printStatement(Void unused) {
+        Expr value = expression(unused);
+        consume(SEMICOLON, "Expect ; after value.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt expressionStatement(Void unused) {
+        Expr expression = expression(unused);
+        consume(SEMICOLON, "Expect ; after expression.");
+        return new Stmt.Expression(expression);
     }
 
     private Expr equality(Void unused) {
