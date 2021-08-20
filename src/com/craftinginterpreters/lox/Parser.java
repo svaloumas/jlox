@@ -19,7 +19,7 @@ class Parser {
         try {
             List<Stmt> statements = new ArrayList<>();
             while (!isAtEnd()) {
-                statements.add(statement(unused));
+                statements.add(declaration(unused));
             }
 
             return statements;
@@ -32,6 +32,17 @@ class Parser {
         return equality(unused);
     }
 
+    private Stmt declaration(Void unused) {
+        try {
+            if (match(VAR)) return varDeclaration(unused);
+
+            return statement(unused);
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
     private Stmt statement(Void unused) {
         if (match(PRINT)) return printStatement(unused);
 
@@ -42,6 +53,18 @@ class Parser {
         Expr value = expression(unused);
         consume(SEMICOLON, "Expect ; after value.");
         return new Stmt.Print(value);
+    }
+
+    private Stmt varDeclaration(Void unused) {
+        Token name = consume(IDENTIFIER, "Expect variable name.");
+
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression(unused);
+        }
+
+        consume(SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
     }
 
     private Stmt expressionStatement(Void unused) {
@@ -83,6 +106,10 @@ class Parser {
 
         if(match(NUMBER, STRING)) {
             return new Expr.Literal(previous().literal);
+        }
+
+        if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
         }
 
         if (match(LEFT_PAREN)) {
