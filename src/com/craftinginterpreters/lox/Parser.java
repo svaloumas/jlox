@@ -29,7 +29,7 @@ class Parser {
     }
 
     private Expr expression(Void unused) {
-        return equality(unused);
+        return assignment(unused);
     }
 
     private Stmt declaration(Void unused) {
@@ -71,6 +71,24 @@ class Parser {
         Expr expression = expression(unused);
         consume(SEMICOLON, "Expect ; after expression.");
         return new Stmt.Expression(expression);
+    }
+
+    private Expr assignment(Void unused) {
+        Expr expr = equality(unused);
+
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment(unused);
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     private Expr equality(Void unused) {
