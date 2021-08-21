@@ -45,6 +45,7 @@ class Parser {
 
     private Stmt statement(Void unused) {
         if (match(PRINT)) return printStatement(unused);
+        if (match(LEFT_BRACE)) return new Stmt.Block(block(unused));
 
         return expressionStatement(unused);
     }
@@ -71,6 +72,17 @@ class Parser {
         Expr expression = expression(unused);
         consume(SEMICOLON, "Expect ; after expression.");
         return new Stmt.Expression(expression);
+    }
+
+    private List<Stmt> block(Void unused) {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration(unused));
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
     }
 
     private Expr assignment(Void unused) {
