@@ -15,11 +15,11 @@ class Parser {
         this.tokens = tokens;
     }
 
-    List<Stmt> parse(Void unused) {
+    List<Stmt> parse(Void unused, Boolean isREPL) {
         try {
             List<Stmt> statements = new ArrayList<>();
             while (!isAtEnd()) {
-                statements.add(declaration(unused));
+                statements.add(declaration(unused, isREPL));
             }
 
             return statements;
@@ -32,20 +32,24 @@ class Parser {
         return assignment(unused);
     }
 
-    private Stmt declaration(Void unused) {
+    private Stmt declaration(Void unused, Boolean isREPL) {
         try {
             if (match(VAR)) return varDeclaration(unused);
 
-            return statement(unused);
+            return statement(unused, isREPL);
         } catch (ParseError error) {
             synchronize();
             return null;
         }
     }
 
-    private Stmt statement(Void unused) {
+    private Stmt statement(Void unused, Boolean isREPL) {
         if (match(PRINT)) return printStatement(unused);
         if (match(LEFT_BRACE)) return new Stmt.Block(block(unused));
+
+        if (isREPL) {
+            return printStatement(unused);
+        }
 
         return expressionStatement(unused);
     }
@@ -78,7 +82,7 @@ class Parser {
         List<Stmt> statements = new ArrayList<>();
 
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            statements.add(declaration(unused));
+            statements.add(declaration(unused, false));
         }
 
         consume(RIGHT_BRACE, "Expect '}' after block.");
